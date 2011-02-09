@@ -1,3 +1,8 @@
+/*
+ * version 1.0
+ * initial release
+ *
+ */
 
 // fusion tables api: http://code.google.com/apis/fusiontables/docs/developers_guide.html#Querying
 
