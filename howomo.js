@@ -1,6 +1,5 @@
 /*
- * version 1.0
- * initial release
+ * version 1.0.1
  *
  */
 
@@ -175,10 +174,13 @@ function getNameData(response) {
               // drop the name into the anchor
               fusiontabledata += response.getDataTable().getValue(i, j);
               // close and put in a new line
-              fusiontabledata += "</a><br>";
-          // otherwise, display normally
+              fusiontabledata += "</a>";
+          // otherwise, display normally but only if the second column
+          // (city) isn't blank (i.e., it exists)
           } else {
-          fusiontabledata += response.getDataTable().getValue(i, j) + "<br>";
+              if (response.getDataTable().getValue(i, j) !== "") {
+                  fusiontabledata += " (" + response.getDataTable().getValue(i, j) + ")<br>";
+              }
           }
       }
       //close the link and the list item
