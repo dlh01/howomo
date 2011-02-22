@@ -167,13 +167,6 @@ function getNameData(response) {
         // detour to strip apostrophes
         house_escaped = house.split("'").join("\\\x27");
 
-        // second detour: if this the first column (the name column),
-        // then get the value of the row's second column (the location)
-        // and put it into the global location variable 
-        if (i == 0) {
-            banana = response.getDataTable().getValue(i, 1);
-        }
-
           //begin the list item
           //display the value of each row itself (this is the content of the li)
           // in this setup it will display church name, then city in
