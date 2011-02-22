@@ -1,5 +1,5 @@
 /*
- * version 1.0.1
+ * version 1.0.2
  *
  */
 
@@ -11,6 +11,8 @@
 num = 401562 //the table id
 layer = new google.maps.FusionTablesLayer(num); //create a new FusionTablesLayer
 
+now_showing_name = "All"; //variable to use for now showing; global so any function can set it
+now_showing_location = ""; //variable part 2 to use for now showing; global so any function can set it
 
 
 /* create the google map
@@ -26,6 +28,9 @@ function initializeMap() {
 
   //on load, populate "Now showing" with "All"
   document.getElementById('howomo-nowshowing').innerHTML = "All";
+
+  //clear out the "Name" section
+  document.getElementById('howomo-listofhouses').innerHTML = "";
 }
 
 
@@ -102,7 +107,10 @@ function getData(response) {
 ***********************************************************************/
 function changeMapForDenominations(selection) {
     //change the text in 'Now showing' to the selection before escaping quotes
-    document.getElementById('howomo-nowshowing').innerHTML = selection;
+    //first, change the global now_showing_name variable to the //selection
+    now_showing_name = selection;
+    //then place the global variable on the page
+    document.getElementById('howomo-nowshowing').innerHTML = now_showing_name;
 
     // escape single quotes before querying table
     // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
@@ -153,22 +161,30 @@ function getNameData(response) {
       // go through each column (name, city, etc;)
       for (j = 0; j < numCols; j++) {
 
-        // variable to hold value of the row
+        // variable to hold value of the cell
         var house = response.getDataTable().getValue(i, j)
 
         // detour to strip apostrophes
         house_escaped = house.split("'").join("\\\x27");
 
+        // second detour: if this the first column (the name column),
+        // then get the value of the row's second column (the location)
+        // and put it into the global location variable 
+        if (i == 0) {
+            banana = response.getDataTable().getValue(i, 1);
+        }
+
           //begin the list item
           //display the value of each row itself (this is the content of the li)
-          // in this setup it will display church name, new line, city
+          // in this setup it will display church name, then city in
+          // parentheticals
 
           // if this is the first column (name)
           if (j == 0) {
               // open an anchor and with the href being the row number
               fusiontabledata += "<a href='#" + i + "'";
-              // add the showMapForNames function to the anchor
-              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "');\"";
+              // add the changeMapForNames function to the anchor
+              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "', '" + response.getDataTable().getValue(i, 1) + "');\"";
               // close the anchor
               fusiontabledata += ">";
               // drop the name into the anchor
@@ -198,9 +214,13 @@ function getNameData(response) {
 /* query the table to show only a particular house on the map (i.e., select by name)
 /* this is called when the user clicks on a house name in the ul
 ***********************************************************************/
-function changeMapForNames(selection) {
+function changeMapForNames(selection, place) {
     //change the text in 'Now showing' to the denomination and name before escaping quotes
-    document.getElementById('howomo-nowshowing').innerHTML = selection;
+    //first, place the house name into the global variable
+    now_showing_name = selection;
+    now_showing_location = place;
+    //then change 'now showing' on the page based on the variable
+    document.getElementById('howomo-nowshowing').innerHTML = now_showing_name + " (" + place + ")";
 
     // escape single quotes before querying table
     // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
