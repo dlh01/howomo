@@ -1,5 +1,5 @@
 /*
- * version 1.0.2
+ * version 1.0.3
  *
  */
 
@@ -20,7 +20,7 @@ now_showing_location = ""; //variable part 2 to use for now showing; global so a
 function initializeMap() {
   map = new google.maps.Map(document.getElementById('howomo-map'), {
     center: new google.maps.LatLng(38.94232097947902, -92.3291015625), //the center lat and long
-    zoom: 7, //zoom
+    zoom: 9, //zoom
     mapTypeId: 'roadmap' //the map style
   });
   layer.setQuery("SELECT * FROM " + num); //set the initial query to Fusion Tables
@@ -106,6 +106,10 @@ function getData(response) {
 /* this is called when the user clicks on a denomination name in the ul
 ***********************************************************************/
 function changeMapForDenominations(selection) {
+    // reset the map to the original, showing all denominations
+    // this is to clear out any zoomed-in focus from clicking on houses
+    initializeMap();
+
     //change the text in 'Now showing' to the selection before escaping quotes
     //first, change the global now_showing_name variable to the //selection
     now_showing_name = selection;
@@ -122,7 +126,7 @@ function changeMapForDenominations(selection) {
 
 
 
-/* query the fusion table for a list of all house names in a denomination
+/* query the fusion table for a list of all house names, cities, and locations in a denomination
 /* the list is parsed in getNameData (below) for eventual placing in HTML
 /* helper code: http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/gviz_sample.html
 ***********************************************************************/
@@ -130,7 +134,7 @@ function showNames(selection) {
     // escape single quotes before querying table
     // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
     selection = selection.replace("'", "\\'");
-    var queryText = encodeURIComponent("SELECT 'Name', 'City' FROM 401562 {WHERE 'Denomination' LIKE '" + selection + "' } {ORDER BY 'City' {ASC}} ");
+    var queryText = encodeURIComponent("SELECT 'Name', 'City', 'Location' FROM 401562 {WHERE 'Denomination' LIKE '" + selection + "' } {ORDER BY 'City' {ASC}} ");
     var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
     query.send(getNameData);
     }
@@ -147,6 +151,12 @@ function getNameData(response) {
     numRows = response.getDataTable().getNumberOfRows();
     numCols = response.getDataTable().getNumberOfColumns();
 
+  // create a new variable of the current denomination, without spaces
+  // this goes into the url in house names so they're not all '#20', // '#1', etc
+  // replace spaces and apostrophes so the links aren't broken
+  var now_showing_name_for_url = now_showing_name.replace(" ", "").replace(" ", "").replace(" ", "").replace("'", "");
+
+
   //
   // concatenate the results into a list
   // this largely mirrors the loops in getData (above)
@@ -158,8 +168,8 @@ function getNameData(response) {
   for(i = 0; i < numRows; i++) {
       // put each row in its own list item
       fusiontabledata += "<li>";
-      // go through each column (name, city, etc;)
-      for (j = 0; j < numCols; j++) {
+      // go through the first two columns (name and city)
+      for (j = 0; j < 2; j++) {
 
         // variable to hold value of the cell
         var house = response.getDataTable().getValue(i, j)
@@ -174,10 +184,11 @@ function getNameData(response) {
 
           // if this is the first column (name)
           if (j == 0) {
-              // open an anchor and with the href being the row number
-              fusiontabledata += "<a href='#" + i + "'";
+              // open an anchor and with the href being the name of
+              // the denomination and the row number
+              fusiontabledata += "<a href='#" + now_showing_name_for_url + i + "'";
               // add the changeMapForNames function to the anchor
-              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "', '" + response.getDataTable().getValue(i, 1) + "');\"";
+              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "', '" + response.getDataTable().getValue(i, 1) + "', '" + response.getDataTable().getValue(i, 2) + "');\"";
               // close the anchor
               fusiontabledata += ">";
               // drop the name into the anchor
@@ -207,7 +218,7 @@ function getNameData(response) {
 /* query the table to show only a particular house on the map (i.e., select by name)
 /* this is called when the user clicks on a house name in the ul
 ***********************************************************************/
-function changeMapForNames(selection, place) {
+function changeMapForNames(selection, place, latlng) {
     //change the text in 'Now showing' to the denomination and name before escaping quotes
     //first, place the house name into the global variable
     now_showing_name = selection;
@@ -220,7 +231,21 @@ function changeMapForNames(selection, place) {
     selection = selection.replace("'", "\\'");
 
     // query the table
+    // first, we need to transform the latlng argument passed down from
+    // changeMapForNames from a string of numbers into two numbers
+    var scooby = latlng.split(',');
+    // next use parseFloat to put these into the LatLng to zoom to
+    var doo = new google.maps.LatLng(parseFloat(scooby[0]),parseFloat(scooby[1]));
+    // then initialize a new map and replace the old one
+    map = new google.maps.Map(document.getElementById('howomo-map'), {
+      center: doo, //the center lat and long
+      zoom: 14, //zoom
+      mapTypeId: 'roadmap' //the map style
+     });
+    // query the table to show the house the user clicked on
     layer.setQuery("SELECT Location FROM " + num + " WHERE Name LIKE '" + selection + "'");
+    layer.setMap(map); //set the layer on to the map
+
 }
 
 
