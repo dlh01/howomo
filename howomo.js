@@ -1,5 +1,5 @@
 /*
- * version 1.0.3
+ * version 1.0.4
  *
  */
 
@@ -62,12 +62,16 @@ function getData(response) {
   numRows = response.getDataTable().getNumberOfRows();
 
   //
-  // concatenate the results into a list for use in HTML
+  // concatenate the results into a menu for use in HTML
   //
 
-  //open the list
+  //open the menu
   //the fusiontabledata var will be what's put on the page via innerHTML
-  fusiontabledata = "<ul>";
+  fusiontabledata = "<select onchange=\"changeMapForDenominations(this.value); showNames(this.value);\">";
+  // add a blank option by default
+  // if someone selects it, the value of 'All' will cause the map to be
+  // reset in changeMapForDenominations
+  fusiontabledata += "<option value='All'>Choose...</option>";
 
   //for each row (ie. denomination) returned by the query in showDenominations
   for(i = 0; i < numRows; i++) {
@@ -75,26 +79,17 @@ function getData(response) {
     // place the value of the row (the denomination name) into a variable
     var denom = response.getDataTable().getValue(i, 0)
 
-    // create a copy of that variable with escaped apostrophes
-    denom_escaped = denom.split("'").join("\\\x27");
-
-    // begin the list item; inside the link, include:
-    // a link with the href being the number of the row (this is a dummy link)
-    // a call to changeMapForDenominations with the argument being the value of the row
-    // this will change the layer over the map to show just houses of that denomination 
-    // a call to showNames with the argument being the value of the row
-    // this will change the list under 'Names' to those of just that denomination
-    fusiontabledata += "<li>";
-    fusiontabledata += "<a href=\"#" + i + "\"";
-    fusiontabledata += "onclick=\"changeMapForDenominations('" + denom_escaped + "');";
-    fusiontabledata += "showNames('" + denom_escaped + "');\">";
-    //display the value of the row itself (the denom name - this is the content of the li)
-    fusiontabledata += denom + "";
-    //close the link and the list item
-    fusiontabledata += "</a></li>";
+    // begin each option in the dropdown
+    // put the escaped denom name as the value
+    // this is used by the onchange function in <select>
+    fusiontabledata += "<option value=\"" + denom + "\">";
+    // then the name of the denom
+    fusiontabledata += denom;
+    // then close the option
+    fusiontabledata += "</option>";
   }  
-  // after all rows are displayed, close the list
-  fusiontabledata += "</ul>";
+  // after all options are displayed, close the menu
+  fusiontabledata += "</select>";
 
   //display the results on the page
   document.getElementById('howomo-listofdenominations').innerHTML = fusiontabledata;
@@ -110,18 +105,24 @@ function changeMapForDenominations(selection) {
     // this is to clear out any zoomed-in focus from clicking on houses
     initializeMap();
 
-    //change the text in 'Now showing' to the selection before escaping quotes
-    //first, change the global now_showing_name variable to the //selection
-    now_showing_name = selection;
-    //then place the global variable on the page
-    document.getElementById('howomo-nowshowing').innerHTML = now_showing_name;
+    // if 'Choose' was selected, stop after resetting the map
+    if (selection == 'All') {
+        return;
+    // otherwise, proceed normally
+    } else { 
+        //change the text in 'Now showing' to the selection before escaping quotes
+        //first, change the global now_showing_name variable to the //selection
+        now_showing_name = selection;
+        //then place the global variable on the page
+        document.getElementById('howomo-nowshowing').innerHTML = now_showing_name;
 
-    // escape single quotes before querying table
-    // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
-    selection = selection.replace("'", "\\'");
+        // escape single quotes before querying table
+        // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
+        selection = selection.replace("'", "\\'");
 
-    //query the table
-    layer.setQuery("SELECT Location FROM " + num + " WHERE Denomination LIKE '" + selection + "'");
+        //query the table
+        layer.setQuery("SELECT Location FROM " + num + " WHERE Denomination LIKE '" + selection + "'");
+    }
 }
 
 
@@ -230,15 +231,18 @@ function changeMapForNames(selection, place, latlng) {
     // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
     selection = selection.replace("'", "\\'");
 
-    // query the table
+    // change the map to focus on the selected house
     // first, we need to transform the latlng argument passed down from
-    // changeMapForNames from a string of numbers into two numbers
-    var scooby = latlng.split(',');
+    // changeMapForNames from a string of numbers into two actual numbers
+    var x = latlng.split(',');
     // next use parseFloat to put these into the LatLng to zoom to
-    var doo = new google.maps.LatLng(parseFloat(scooby[0]),parseFloat(scooby[1]));
+    var y = new google.maps.LatLng(parseFloat(x[0]),parseFloat(x[1]));
     // then initialize a new map and replace the old one
+    // (maybe make the map variable a global variable, make it a new
+    // google.maps object, then fill in the details in initializeMap and
+    // this function?)
     map = new google.maps.Map(document.getElementById('howomo-map'), {
-      center: doo, //the center lat and long
+      center: y, //the center lat and long
       zoom: 14, //zoom
       mapTypeId: 'roadmap' //the map style
      });
