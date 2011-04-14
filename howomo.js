@@ -33,7 +33,7 @@ function initializeMap() {
   document.getElementById('howomo-listofhouses').innerHTML = "";
   
   //clear out the Google Maps link span
-  document.getElementById('mapslink').innerHTML = "";
+  document.getElementById('howomo-mapslink').innerHTML = "";
 }
 
 
@@ -108,7 +108,7 @@ function changeMapForDenominations(selection) {
     // this is to clear out any zoomed-in focus from clicking on houses
     initializeMap();
     // also clear out the span with the Google Maps link
-    document.getElementById('mapslink').innerHTML = "";
+    document.getElementById('howomo-mapslink').innerHTML = "";
 
     // if 'Choose' was selected, stop after resetting the map
     if (selection == 'All') {
@@ -288,6 +288,6 @@ function getHouseData(name) {
         // put housedata into variable for link to google maps
         mapslink = "<a target=\"_blank\" href=\"http://maps.google.com/maps?q=" + housedata + "\">visit Google Maps</a>";
         // put link to maps into the mapslink span on the page
-        document.getElementById('mapslink').innerHTML = "To get directions or print a map of this location, " + mapslink + ".";
+        document.getElementById('howomo-mapslink').innerHTML = "To get directions or print a map of this location, " + mapslink + ".";
     }
 }
