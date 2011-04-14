@@ -20,7 +20,7 @@ now_showing_location = ""; //variable part 2 to use for now showing; global so a
 function initializeMap() {
   map = new google.maps.Map(document.getElementById('howomo-map'), {
     center: new google.maps.LatLng(38.94232097947902, -92.3291015625), //the center lat and long
-    zoom: 9, //zoom
+    zoom: 8, //zoom
     mapTypeId: 'roadmap' //the map style
   });
   layer.setQuery("SELECT * FROM " + num); //set the initial query to Fusion Tables
@@ -31,6 +31,9 @@ function initializeMap() {
 
   //clear out the "Name" section
   document.getElementById('howomo-listofhouses').innerHTML = "";
+  
+  //clear out the Google Maps link span
+  document.getElementById('mapslink').innerHTML = "";
 }
 
 
@@ -104,6 +107,8 @@ function changeMapForDenominations(selection) {
     // reset the map to the original, showing all denominations
     // this is to clear out any zoomed-in focus from clicking on houses
     initializeMap();
+    // also clear out the span with the Google Maps link
+    document.getElementById('mapslink').innerHTML = "";
 
     // if 'Choose' was selected, stop after resetting the map
     if (selection == 'All') {
@@ -250,6 +255,39 @@ function changeMapForNames(selection, place, latlng) {
     layer.setQuery("SELECT Location FROM " + num + " WHERE Name LIKE '" + selection + "'");
     layer.setMap(map); //set the layer on to the map
 
+    // send the name of the house to getHouseData for Maps link
+    getHouseData(selection);
 }
 
 
+
+/* function to get address data for link to google maps
+ * ********************************************************************/
+function getHouseData(name) {
+    // query the database for the address data of the house the user clicked on
+    var queryText = encodeURIComponent("SELECT 'Address 1', 'Address 2', 'City', 'State', 'ZIP' FROM " + num + " WHERE Name LIKE '" + name + "'");
+    var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+    // send the address data to showHouseData
+    query.send(showHouseData);
+
+    function showHouseData(response) {
+        // get the number of columns received from the database (should be 5)
+        var cols = response.getDataTable().getNumberOfColumns();
+        // open an empty housedata variable; the data from the DB will
+        // go into this
+        var housedata = "";
+        // for each column (ie., address 1, city, etc.)
+        for(i = 0; i < cols; i++){
+            // add the data to the housedatavar
+            housedata += response.getDataTable().getValue(0, i);
+            // separate with a plus
+            housedata += "+";
+            }
+        // replace spaces with pluses
+        housedata = housedata.replace(" ", "+");
+        // put housedata into variable for link to google maps
+        mapslink = "<a target=\"_blank\" href=\"http://maps.google.com/maps?q=" + housedata + "\">visit Google Maps</a>";
+        // put link to maps into the mapslink span on the page
+        document.getElementById('mapslink').innerHTML = "To get directions or print a map of this location, " + mapslink + ".";
+    }
+}
