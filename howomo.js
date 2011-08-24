@@ -1,5 +1,5 @@
 /*
- * version 1.0.5
+ * version 1.1
  *
  */
 
@@ -140,7 +140,7 @@ function showNames(selection) {
     // escape single quotes before querying table
     // via http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/change_query_text_input.html
     selection = selection.replace("'", "\\'");
-    var queryText = encodeURIComponent("SELECT 'Name', 'City', 'Location' FROM 401562 {WHERE 'Denomination' LIKE '" + selection + "' } {ORDER BY 'City' {ASC}} ");
+    var queryText = encodeURIComponent("SELECT 'Name', 'City', 'Website', 'Location' FROM 401562 {WHERE 'Denomination' LIKE '" + selection + "' } {ORDER BY 'City' {ASC}} ");
     var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
     query.send(getNameData);
     }
@@ -174,8 +174,8 @@ function getNameData(response) {
   for(i = 0; i < numRows; i++) {
       // put each row in its own list item
       fusiontabledata += "<li>";
-      // go through the first two columns (name and city)
-      for (j = 0; j < 2; j++) {
+      // go through the first three columns (name, city, website)
+      for (j = 0; j < 3; j++) {
 
         // variable to hold value of the cell
         var house = response.getDataTable().getValue(i, j)
@@ -194,18 +194,25 @@ function getNameData(response) {
               // the denomination and the row number
               fusiontabledata += "<a href='#" + now_showing_name_for_url + i + "'";
               // add the changeMapForNames function to the anchor
-              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "', '" + response.getDataTable().getValue(i, 1) + "', '" + response.getDataTable().getValue(i, 2) + "');\"";
+              fusiontabledata += "onclick=\"changeMapForNames('" + house_escaped + "', '" + response.getDataTable().getValue(i, 1) + "', '" + response.getDataTable().getValue(i, 3) + "');\"";
               // close the anchor
               fusiontabledata += ">";
               // drop the name into the anchor
               fusiontabledata += response.getDataTable().getValue(i, j);
               // close and put in a new line
               fusiontabledata += "</a>";
-          // otherwise, display normally but only if the second column
-          // (city) isn't blank (i.e., it exists)
+          // otherwise, display normally but only if the column (city, website)
+          // isn't blank (i.e., it exists)
           } else {
               if (response.getDataTable().getValue(i, j) !== "") {
-                  fusiontabledata += " (" + response.getDataTable().getValue(i, j) + ")<br>";
+                  // if this is the city (column 1), display in parentheses
+                  if ( j == 1 ) {
+                      fusiontabledata += " (" + response.getDataTable().getValue(i, j) + ") ";
+                  }
+                  // if this is the website (column 2), display a link with the text 'website'
+                  if ( j == 2 ) {
+                      fusiontabledata += " (<a href='" + response.getDataTable().getValue(i, j) + "'>website</a>)<br>";
+                  }
               }
           }
       }
