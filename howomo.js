@@ -1,13 +1,13 @@
-/*
+/**
  * version 1.2
- *
  */
 
 // fusion tables api: http://code.google.com/apis/fusiontables/docs/developers_guide.html#Querying
 
 
-/* set variables
-***********************************************************************/
+/**
+ * set variables
+ */
 var num = 401562; //the table id
 var layer = new google.maps.FusionTablesLayer(num); //create a new FusionTablesLayer
 
@@ -15,12 +15,13 @@ var now_showing_name = "All"; //variable to use for now showing; global so any f
 var now_showing_location = ""; //variable part 2 to use for now showing; global so any function can set it
 
 
-/* create the google map
-***********************************************************************/
+/*
+ * create the google map
+ */
 function initializeMap() {
     var map = new google.maps.Map(document.getElementById('howomo-map'), {
         center: new google.maps.LatLng(38.94232097947902, -92.3291015625), //the center lat and long
-        zoom: 8, //zoom
+        zoom: 7, //zoom
         mapTypeId: 'roadmap' //the map style
     });
 
@@ -39,14 +40,17 @@ function initializeMap() {
 
 
 
-/* query the **helper table** for a list of all denominiations
+/**
+ * get a list of all denominations from the helper table
+ *
  * the list is parsed in getData (below) for eventual placing in HTML
- * helper code: http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/gviz_sample.html
-***********************************************************************/
+ *
+ * @link http://gmaps-samples.googlecode.com/svn/trunk/fusiontables/gviz_sample.html
+ */
 function showDenominations() {
     //query the helper table for a list of all denominations
     var queryText = encodeURIComponent("SELECT 'Denomination' FROM 420855 {ORDER BY 'Denomination' {ASC}} ");
-    var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq='  + queryText);
+    var query = new google.visualization.Query('http://www.google.com/fusiontables/gvizdata?tq=' + queryText);
   
     //send the resulting list to getData()
     query.send(getData);
@@ -54,35 +58,36 @@ function showDenominations() {
 
 
 
-/* parse through the data returned by showDenominations
- * format the data into the ul of denominations visible to the user
- * eventually use innerHTML to place the list on the page
+/**
+ * parse the list of denominations returned by showDenominations
+ * format the data into the ul of denominations the user can see and select
+ * eventually use innerHTML to place the ul on the page
+ *
  * for more information on the response object, see the documentation:
  * http://code.google.com/apis/visualization/documentation/reference.html#QueryResponse
-***********************************************************************/
+ */
 function getData(response) {
 
     // get the number of rows returned by showDenominations
     var numRows = response.getDataTable().getNumberOfRows();
     
-    //
     // concatenate the results into a menu for use in HTML
-    //
     
-    //open the menu
-    //the fusiontabledata var will be what's put on the page via innerHTML
-    var fusiontabledata = "<select onchange=\"changeMapForDenominations(this.value); showNames(this.value);\">";
-    // add a blank option by default
+    /**
+     * open the menu
+     * the fusiontabledata variable will be what's put on the page via innerHTML
+     */
+    var fusiontabledata = '<select onchange="changeMapForDenominations(this.value); showNames(this.value);">';
+
+    // add a generic option by default
     // if someone selects it, the value of 'All' will cause the map to be
     // reset in changeMapForDenominations
     fusiontabledata += "<option value='All'>Choose...</option>";
     
     //for each row (ie. denomination) returned by the query in showDenominations
     for (var i = 0; i < numRows; i++) {
-        
         // place the value of the row (the denomination name) into a variable
         var denom = response.getDataTable().getValue(i, 0);
-        
         // begin each option in the dropdown
         // put the escaped denom name as the value
         // this is used by the onchange function in <select>
