@@ -1,5 +1,5 @@
 /**
- * version 1.2
+ * version 1.3
  */
 
 // fusion tables api: http://code.google.com/apis/fusiontables/docs/developers_guide.html#Querying
@@ -8,7 +8,7 @@
 /**
  * set variables
  */
-var num = 401562; //the table id
+var num = 2035028; //the table id
 var layer = new google.maps.FusionTablesLayer(num); //create a new FusionTablesLayer
 
 var now_showing_name = "All"; //variable to use for now showing; global so any function can set it
@@ -25,8 +25,8 @@ function initializeMap() {
         mapTypeId: 'roadmap' //the map style
     });
 
-    layer.setQuery("SELECT * FROM " + num); //set the initial query to Fusion Tables
     layer.setMap(map); //set the layer on to the map
+    layer.setQuery("SELECT * FROM " + num); //set the initial query to Fusion Tables
 
     //on load, populate "Now showing" with "All"
     document.getElementById('howomo-nowshowing').innerHTML = "All";
@@ -107,7 +107,7 @@ function getData(response) {
 
 
 /* query the table to show houses of only a particular denomination
- * this is called when the user clicks on a denomination name in the ul
+ * this is called when the user selects a denomination name in the <option>
  **********************************************************************/
 function changeMapForDenominations(selection) {
     // reset the map to the original, showing all denominations
@@ -264,7 +264,7 @@ function changeMapForNames(selection, place, latlng) {
         mapTypeId: 'roadmap' //the map style
     });
     // query the table to show the house the user clicked on
-    layer.setQuery("SELECT Location FROM " + num + " WHERE Name LIKE '" + selection + "'");
+    //layer.setQuery("SELECT Location FROM " + num + " WHERE Name LIKE '" + selection + "'");
     layer.setMap(map); //set the layer on to the map
 
     // send the name of the house to getHouseData for Maps link
